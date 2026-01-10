@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { Suspense, useMemo } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { Navbar } from "@/components/minar/Navbar";
@@ -10,7 +10,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { CheckCircle2, Package, MapPin, Calendar, Download } from "lucide-react";
 
-export default function OrderConfirmationPage() {
+function OrderConfirmationContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const orderId = searchParams.get("orderId");
@@ -93,7 +93,7 @@ export default function OrderConfirmationPage() {
                     </div>
                     <div>
                       <p className="text-sm text-gray-600 mb-1">Order Date</p>
-                      <p className="font-semibold">{orderDate || "Loading..."}</p>
+                      <p className="font-semibold">{orderDate}</p>
                     </div>
                   </div>
 
@@ -104,7 +104,7 @@ export default function OrderConfirmationPage() {
                     </div>
                     <div>
                       <p className="text-sm text-gray-600 mb-1">Estimated Delivery</p>
-                      <p className="font-semibold">{estimatedDelivery || "Loading..."}</p>
+                      <p className="font-semibold">{estimatedDelivery}</p>
                     </div>
                   </div>
 
@@ -218,5 +218,17 @@ export default function OrderConfirmationPage() {
 
       <Footer />
     </div>
+  );
+}
+
+export default function OrderConfirmationPage() {
+  return (
+    <Suspense fallback={
+      <div className="flex min-h-screen items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-yellow-600"></div>
+      </div>
+    }>
+      <OrderConfirmationContent />
+    </Suspense>
   );
 }
