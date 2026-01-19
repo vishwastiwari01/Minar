@@ -10,6 +10,9 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { CheckCircle2, Package, MapPin, Calendar, Download } from "lucide-react";
 
+// Force dynamic rendering to prevent build-time errors with useSearchParams
+export const dynamic = 'force-dynamic';
+
 function OrderConfirmationContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
