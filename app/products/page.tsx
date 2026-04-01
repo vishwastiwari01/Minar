@@ -170,35 +170,52 @@ export default function ProductsPage() {
       <main className="flex-1">
         <div className="container-minar py-8">
           {/* Header */}
-          <div className="mb-8">
-            <h1 className="text-3xl font-bold text-black">All Products</h1>
-            <p className="mt-2 text-gray-600">
-              Browse our complete catalog of construction and hardware supplies
-            </p>
+          <div className="mb-10 bg-[#1C1F26] rounded-xl p-8 md:p-12 text-white relative overflow-hidden shadow-2xl">
+            <div className="absolute inset-0 bg-gradient-to-r from-black/80 to-transparent z-10"></div>
+            <div className="absolute inset-0 opacity-30 bg-[url('https://images.unsplash.com/photo-1541888081635-4221147817eb?q=80&w=1200')] bg-cover bg-center mix-blend-luminosity"></div>
+            
+            <div className="relative z-20">
+              <h1 
+                className="text-4xl md:text-5xl font-black uppercase tracking-wide mb-2 text-white"
+                style={{ fontFamily: "'Barlow Condensed', sans-serif" }}
+              >
+                Our <span className="text-[#F5C518]">Products</span>
+              </h1>
+              <p className="text-gray-300 max-w-xl text-sm md:text-base">
+                Browse our complete catalog of commercial-grade construction and hardware supplies. Fixed prices, GST invoices, verified sellers.
+              </p>
+            </div>
           </div>
 
           <div className="flex gap-8">
             {/* Filters Sidebar - Desktop */}
             <aside className="hidden md:block w-64 shrink-0">
-              <div className="sticky top-24 space-y-6">
+              <div className="sticky top-24 bg-[#1C1F26] rounded-xl p-6 shadow-xl border border-gray-800 space-y-8 text-white">
                 <div>
-                  <h3 className="mb-4 text-lg font-semibold">Filters</h3>
+                  <h3 
+                    className="text-2xl font-black uppercase tracking-wider mb-2" 
+                    style={{ fontFamily: "'Barlow Condensed', sans-serif" }}
+                  >
+                    Filters
+                  </h3>
+                  <div className="w-10 h-1 bg-[#F5C518]"></div>
                 </div>
 
                 {/* Category Filter */}
                 <div>
-                  <h4 className="mb-3 font-medium">Category</h4>
-                  <div className="space-y-2">
+                  <h4 className="mb-4 font-bold text-xs uppercase tracking-widest text-gray-400">Category</h4>
+                  <div className="space-y-3">
                     {categories.map((category) => (
-                      <div key={category} className="flex items-center space-x-2">
+                      <div key={category} className="flex items-center space-x-3 group">
                         <Checkbox
                           id={category}
                           checked={selectedCategories.includes(category)}
                           onCheckedChange={() => toggleCategory(category)}
+                          className="border-gray-500 data-[state=checked]:bg-[#F5C518] data-[state=checked]:border-[#F5C518] data-[state=checked]:text-[#1C1F26]"
                         />
                         <Label
                           htmlFor={category}
-                          className="text-sm font-normal cursor-pointer"
+                          className="text-sm font-medium text-gray-300 cursor-pointer group-hover:text-white transition-colors"
                         >
                           {category}
                         </Label>
@@ -207,12 +224,12 @@ export default function ProductsPage() {
                   </div>
                 </div>
 
-                <Separator />
+                <hr className="border-gray-800" />
 
                 {/* Price Filter */}
                 <div>
-                  <h4 className="mb-3 font-medium">Price Range</h4>
-                  <div className="space-y-4">
+                  <h4 className="mb-4 font-bold text-xs uppercase tracking-widest text-gray-400">Price Range</h4>
+                  <div className="space-y-5">
                     <Slider
                       min={0}
                       max={10000}
@@ -221,29 +238,30 @@ export default function ProductsPage() {
                       onValueChange={setPriceRange}
                       className="w-full"
                     />
-                    <div className="flex items-center justify-between text-sm text-gray-600">
+                    <div className="flex items-center justify-between text-sm font-bold text-[#F5C518]">
                       <span>₹{priceRange[0]}</span>
                       <span>₹{priceRange[1]}</span>
                     </div>
                   </div>
                 </div>
 
-                <Separator />
+                <hr className="border-gray-800" />
 
                 {/* Location Filter */}
                 <div>
-                  <h4 className="mb-3 font-medium">Location</h4>
-                  <div className="space-y-2">
+                  <h4 className="mb-4 font-bold text-xs uppercase tracking-widest text-gray-400">Location</h4>
+                  <div className="space-y-3">
                     {locations.map((location) => (
-                      <div key={location} className="flex items-center space-x-2">
+                      <div key={location} className="flex items-center space-x-3 group">
                         <Checkbox
                           id={location}
                           checked={selectedLocations.includes(location)}
                           onCheckedChange={() => toggleLocation(location)}
+                          className="border-gray-500 data-[state=checked]:bg-[#F5C518] data-[state=checked]:border-[#F5C518] data-[state=checked]:text-[#1C1F26]"
                         />
                         <Label
                           htmlFor={location}
-                          className="text-sm font-normal cursor-pointer"
+                          className="text-sm font-medium text-gray-300 cursor-pointer group-hover:text-white transition-colors"
                         >
                           {location}
                         </Label>
@@ -254,7 +272,7 @@ export default function ProductsPage() {
 
                 <Button
                   variant="outline"
-                  className="w-full"
+                  className="w-full bg-transparent border-2 border-gray-700 text-gray-300 hover:bg-[#F5C518] hover:text-[#1C1F26] hover:border-[#F5C518] transition-all font-bold uppercase tracking-widest text-xs py-5"
                   onClick={() => {
                     setSelectedCategories([]);
                     setSelectedLocations([]);
@@ -287,9 +305,11 @@ export default function ProductsPage() {
               </div>
 
               {loading ? (
-                <div className="flex flex-col items-center justify-center py-12">
-                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-yellow-600 mb-4"></div>
-                  <p className="text-gray-600">Loading products...</p>
+                <div className="flex flex-col items-center justify-center py-20">
+                  <div className="animate-spin rounded-full h-12 w-12 border-4 border-gray-100 border-t-[#F5C518] mb-6"></div>
+                  <p className="font-black text-2xl text-[#1C1F26] uppercase tracking-widest" style={{ fontFamily: "'Barlow Condensed', sans-serif" }}>
+                    Loading Inventory <span className="text-[#F5C518]">...</span>
+                  </p>
                 </div>
               ) : filteredProducts.length === 0 ? (
                 <div className="text-center py-12">

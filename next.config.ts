@@ -5,12 +5,12 @@ const nextConfig: NextConfig = {
     remotePatterns: [
       {
         protocol: 'https',
-        hostname: 'images.unsplash.com',
-        port: '',
-        pathname: '/**',
+        hostname: '**',
       },
     ],
   },
+  // Remove turbo config as it's causing TypeScript errors
+  // The Turbopack warning can be safely ignored or fix the project structure
 };
 
 export default nextConfig;
