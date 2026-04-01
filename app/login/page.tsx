@@ -10,7 +10,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Loader2 } from "lucide-react";
+import { Loader2, ArrowRight } from "lucide-react";
+import { supabase } from "@/lib/supabase";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -24,68 +25,88 @@ export default function LoginPage() {
     setError("");
     setLoading(true);
 
-    // Simulate API call
-    setTimeout(() => {
-      if (email && password) {
-        // Mock successful login
-        console.log("Login successful:", { email });
-        router.push("/");
-      } else {
-        setError("Please enter valid credentials");
-      }
-      setLoading(false);
-    }, 1000);
+    try {
+      const { error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
 
-    // TODO: Replace with actual Supabase authentication
-    // const { data, error } = await supabase.auth.signInWithPassword({
-    //   email,
-    //   password,
-    // });
+      if (error) {
+        setError(error.message);
+      } else {
+        router.push("/");
+        router.refresh();
+      }
+    } catch (err: any) {
+      setError("An unexpected error occurred");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleGoogleLogin = async () => {
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: `${window.location.origin}/auth/callback`,
+        },
+      });
+      if (error) setError(error.message);
+    } catch (err) {
+      setError("Failed to initialize Google login");
+    }
   };
 
   return (
     <div className="flex min-h-screen flex-col">
       <Navbar />
 
-      <main className="flex-1 flex items-center justify-center bg-gray-50 py-12">
-        <div className="w-full max-w-md px-4">
-          <Card>
-            <CardHeader className="space-y-1">
-              <CardTitle className="text-2xl font-bold text-center">
-                Welcome Back
+      <main className="flex-1 flex items-center justify-center bg-[#F8F9FA] py-20 relative overflow-hidden">
+        {/* Decorative background elements */}
+        <div className="absolute top-0 right-0 w-1/3 h-full bg-[#1C1F26]/[0.02] transform skew-x-12 translate-x-1/2"></div>
+        <div className="absolute bottom-0 left-0 w-1/4 h-64 bg-[#F5C518]/[0.05] blur-3xl rounded-full translate-y-1/2 -translate-x-1/2"></div>
+
+        <div className="w-full max-w-md px-4 relative z-10">
+          <Card className="border-none shadow-2xl overflow-hidden rounded-2xl">
+            <CardHeader className="space-y-3 bg-[#1C1F26] text-white p-8 pb-10">
+              <div className="w-12 h-1.5 bg-[#F5C518] mb-2"></div>
+              <CardTitle className="text-4xl font-black uppercase tracking-tight leading-none" style={{ fontFamily: "'Barlow Condensed', sans-serif" }}>
+                Welcome <span className="text-[#F5C518]">Back</span>
               </CardTitle>
-              <CardDescription className="text-center">
-                Login to your MINAR account
+              <CardDescription className="text-gray-400 font-medium">
+                Access your premium construction marketplace account.
               </CardDescription>
             </CardHeader>
-            <CardContent>
-              <form onSubmit={handleLogin} className="space-y-4">
+            <CardContent className="p-8 pt-10 bg-white">
+              <form onSubmit={handleLogin} className="space-y-6">
                 {error && (
-                  <Alert variant="destructive">
-                    <AlertDescription>{error}</AlertDescription>
+                  <Alert variant="destructive" className="bg-red-50 text-red-700 border-red-200">
+                    <AlertDescription className="font-medium text-xs">{error}</AlertDescription>
                   </Alert>
                 )}
 
                 <div className="space-y-2">
-                  <Label htmlFor="email">Email</Label>
+                  <Label htmlFor="email" className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Email Address</Label>
                   <Input
                     id="email"
                     type="email"
-                    placeholder="your@email.com"
+                    placeholder="name@company.com"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     required
+                    className="h-12 border-gray-200 focus:ring-[#F5C518] focus:border-[#F5C518] rounded-lg"
                   />
                 </div>
 
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
-                    <Label htmlFor="password">Password</Label>
+                    <Label htmlFor="password" className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Password</Label>
                     <Link
                       href="/forgot-password"
-                      className="text-sm text-yellow-600 hover:text-yellow-700"
+                      className="text-[10px] uppercase tracking-widest font-bold text-[#F5C518] hover:text-[#1C1F26] transition-colors"
                     >
-                      Forgot password?
+                      Forgot?
                     </Link>
                   </div>
                   <Input
@@ -95,35 +116,43 @@ export default function LoginPage() {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     required
+                    className="h-12 border-gray-200 focus:ring-[#F5C518] focus:border-[#F5C518] rounded-lg"
                   />
                 </div>
 
-                <Button type="submit" className="w-full" disabled={loading}>
+                <Button type="submit" className="w-full h-12 bg-[#1C1F26] hover:bg-[#F5C518] text-white hover:text-[#1C1F26] transition-all font-bold uppercase tracking-widest text-xs" disabled={loading}>
                   {loading ? (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Logging in...
+                      Authenticating...
                     </>
                   ) : (
-                    "Login"
+                    <>
+                      Log In <ArrowRight className="ml-2 h-4 w-4" />
+                    </>
                   )}
                 </Button>
               </form>
 
-              <div className="mt-6">
+              <div className="mt-8">
                 <div className="relative">
                   <div className="absolute inset-0 flex items-center">
-                    <span className="w-full border-t" />
+                    <span className="w-full border-t border-gray-100" />
                   </div>
-                  <div className="relative flex justify-center text-xs uppercase">
-                    <span className="bg-white px-2 text-gray-500">
-                      Or continue with
+                  <div className="relative flex justify-center text-[10px] uppercase tracking-widest font-bold text-gray-400">
+                    <span className="bg-white px-4">
+                      Social Gateway
                     </span>
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4 mt-6">
-                  <Button variant="outline" disabled={loading}>
+                <div className="mt-8">
+                  <Button 
+                    variant="outline" 
+                    className="w-full h-12 border-2 border-gray-100 hover:border-[#1C1F26] hover:bg-[#1C1F26] hover:text-white transition-all font-bold uppercase tracking-widest text-xs" 
+                    disabled={loading}
+                    onClick={handleGoogleLogin}
+                  >
                     <svg className="mr-2 h-4 w-4" viewBox="0 0 24 24">
                       <path
                         fill="currentColor"
@@ -142,24 +171,18 @@ export default function LoginPage() {
                         d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
                       />
                     </svg>
-                    Google
-                  </Button>
-                  <Button variant="outline" disabled={loading}>
-                    <svg className="mr-2 h-4 w-4" fill="currentColor" viewBox="0 0 24 24">
-                      <path d="M12 2C6.477 2 2 6.477 2 12c0 4.42 2.865 8.17 6.839 9.49.5.092.682-.217.682-.482 0-.237-.008-.866-.013-1.7-2.782.603-3.369-1.34-3.369-1.34-.454-1.156-1.11-1.463-1.11-1.463-.908-.62.069-.608.069-.608 1.003.07 1.531 1.03 1.531 1.03.892 1.529 2.341 1.087 2.91.831.092-.646.35-1.086.636-1.336-2.22-.253-4.555-1.11-4.555-4.943 0-1.091.39-1.984 1.029-2.683-.103-.253-.446-1.27.098-2.647 0 0 .84-.269 2.75 1.025A9.578 9.578 0 0112 6.836c.85.004 1.705.114 2.504.336 1.909-1.294 2.747-1.025 2.747-1.025.546 1.377.203 2.394.1 2.647.64.699 1.028 1.592 1.028 2.683 0 3.842-2.339 4.687-4.566 4.935.359.309.678.919.678 1.852 0 1.336-.012 2.415-.012 2.743 0 .267.18.578.688.48C19.138 20.167 22 16.418 22 12c0-5.523-4.477-10-10-10z" />
-                    </svg>
-                    GitHub
+                    Continue with Google
                   </Button>
                 </div>
               </div>
 
-              <p className="mt-6 text-center text-sm text-gray-600">
-                Don't have an account?{" "}
+              <p className="mt-8 text-center text-[11px] font-bold uppercase tracking-widest text-gray-500">
+                New to MINAR?{" "}
                 <Link
                   href="/register"
-                  className="font-semibold text-yellow-600 hover:text-yellow-700"
+                  className="text-[#F5C518] hover:text-[#1C1F26] transition-colors"
                 >
-                  Sign up
+                  Create Account
                 </Link>
               </p>
             </CardContent>

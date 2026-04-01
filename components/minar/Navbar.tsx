@@ -3,7 +3,8 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
+import { supabase } from "@/lib/supabase";
 import {
   ShoppingCart,
   Search,
@@ -27,13 +28,35 @@ export function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [accountOpen, setAccountOpen] = useState(false);
+  const [user, setUser] = useState<any>(null);
   const pathname = usePathname();
+  const router = useRouter();
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 8);
     window.addEventListener("scroll", handleScroll, { passive: true });
-    return () => window.removeEventListener("scroll", handleScroll);
+    
+    // Check initial session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUser(session?.user ?? null);
+    });
+
+    // Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null);
+    });
+
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+      subscription.unsubscribe();
+    };
   }, []);
+
+  const handleSignOut = async () => {
+    await supabase.auth.signOut();
+    setAccountOpen(false);
+    router.refresh();
+  };
 
   // Close dropdowns on route change
   useEffect(() => {
@@ -113,7 +136,7 @@ export function Navbar() {
                   className="flex items-center gap-1.5 border border-gray-200 rounded-lg px-3 py-2 text-sm font-medium text-gray-700 hover:border-[#F5C518] hover:text-gray-900 transition-colors"
                 >
                   <User className="h-4 w-4" />
-                  Sign in
+                  {user ? (user.user_metadata?.full_name || user.email?.split('@')[0]) : "Sign in"}
                   <ChevronDown
                     className={`h-3.5 w-3.5 transition-transform ${
                       accountOpen ? "rotate-180" : ""
@@ -123,20 +146,28 @@ export function Navbar() {
 
                 {accountOpen && (
                   <div className="absolute right-0 top-full mt-2 w-52 rounded-xl bg-white shadow-xl border border-gray-100 py-2 z-50">
-                    <Link
-                      href="/login"
-                      className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
-                    >
-                      <User className="h-4 w-4 text-gray-400" />
-                      Sign In
-                    </Link>
-                    <Link
-                      href="/register"
-                      className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
-                    >
-                      <Package className="h-4 w-4 text-gray-400" />
-                      Create Account
-                    </Link>
+                    {!user ? (
+                      <>
+                        <Link
+                          href="/login"
+                          className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                        >
+                          <User className="h-4 w-4 text-gray-400" />
+                          Sign In
+                        </Link>
+                        <Link
+                          href="/register"
+                          className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                        >
+                          <Package className="h-4 w-4 text-gray-400" />
+                          Create Account
+                        </Link>
+                      </>
+                    ) : (
+                      <div className="px-4 py-2 text-[10px] uppercase tracking-widest font-bold text-gray-400">
+                        {user.email}
+                      </div>
+                    )}
                     <Link
                       href="/orders"
                       className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
@@ -152,13 +183,23 @@ export function Navbar() {
                       Wishlist
                     </Link>
                     <hr className="my-1 border-gray-100" />
-                    <Link
-                      href="/seller/register"
-                      className="flex items-center gap-3 px-4 py-2.5 text-sm font-semibold text-[#1C1F26] hover:bg-[#F5C518]/10 transition-colors"
-                    >
-                      <LogOut className="h-4 w-4 text-[#F5C518]" />
-                      Become a Seller
-                    </Link>
+                    {user ? (
+                      <button
+                        onClick={handleSignOut}
+                        className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 transition-colors"
+                      >
+                        <LogOut className="h-4 w-4 text-red-400" />
+                        Sign Out
+                      </button>
+                    ) : (
+                      <Link
+                        href="/seller/register"
+                        className="flex items-center gap-3 px-4 py-2.5 text-sm font-semibold text-[#1C1F26] hover:bg-[#F5C518]/10 transition-colors"
+                      >
+                        <LogOut className="h-4 w-4 text-[#F5C518]" />
+                        Become a Seller
+                      </Link>
+                    )}
                   </div>
                 )}
               </div>
@@ -213,20 +254,31 @@ export function Navbar() {
                 );
               })}
               <hr className="my-2 border-gray-100" />
-              <Link
-                href="/login"
-                onClick={() => setIsOpen(false)}
-                className="flex items-center gap-2 px-4 py-3 rounded-lg text-base font-medium text-gray-700 hover:bg-gray-50"
-              >
-                <User className="h-4 w-4" /> Sign In
-              </Link>
-              <Link
-                href="/seller/register"
-                onClick={() => setIsOpen(false)}
-                className="block px-4 py-3 rounded-lg text-base font-semibold text-center bg-[#F5C518] text-[#1C1F26] mt-2"
-              >
-                Become a Seller
-              </Link>
+              {user ? (
+                <button
+                  onClick={handleSignOut}
+                  className="flex w-full items-center gap-2 px-4 py-3 rounded-lg text-base font-medium text-red-600 hover:bg-red-50"
+                >
+                  <LogOut className="h-4 w-4" /> Sign Out
+                </button>
+              ) : (
+                <>
+                  <Link
+                    href="/login"
+                    onClick={() => setIsOpen(false)}
+                    className="flex items-center gap-2 px-4 py-3 rounded-lg text-base font-medium text-gray-700 hover:bg-gray-50"
+                  >
+                    <User className="h-4 w-4" /> Sign In
+                  </Link>
+                  <Link
+                    href="/seller/register"
+                    onClick={() => setIsOpen(false)}
+                    className="block px-4 py-3 rounded-lg text-base font-semibold text-center bg-[#F5C518] text-[#1C1F26] mt-2"
+                  >
+                    Become a Seller
+                  </Link>
+                </>
+              )}
             </div>
           </div>
         )}

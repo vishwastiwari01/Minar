@@ -53,11 +53,11 @@ export function Footer() {
           <div className="lg:col-span-2">
             <Link href="/" className="inline-block mb-6">
               <Image
-                src="/minar_logo2.png"
+                src="/logo.png"
                 alt="MINAR"
-                width={160}
+                width={200}
                 height={50}
-                className="h-12 w-auto object-contain"
+                className="h-10 w-auto object-contain brightness-0 invert"
               />
             </Link>
             
